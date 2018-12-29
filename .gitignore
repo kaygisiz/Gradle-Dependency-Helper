@@ -1,0 +1,5 @@
+.idea/*
+output/*
+
+# for mac users
+.DS_STORE
