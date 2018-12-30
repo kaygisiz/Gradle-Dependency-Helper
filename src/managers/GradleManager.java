@@ -33,15 +33,66 @@ public class GradleManager {
 
     private Document buildGradle;
 
-    private Document settingsGradle;
+    private String[] modules = new String[]{};
 
-    private String[] modules;
+    private VirtualFile projectBaseDir;
 
     public GradleManager(Project project) {
         this.project = project;
-        settingsGradle = FileDocumentManager.getInstance().getDocument(project.getBaseDir().findChild("settings.gradle"));
-        modules = readSettingsGradle();
-        initBuildGradle();
+    }
+
+    public boolean initBuildGradle() throws FileNotFoundException {
+        checkFilesExist();
+
+        SelectFromListDialog.ToStringAspect toStringAspect = String::valueOf;
+        VirtualFile gradleVirtualFile;
+        if (modules.length > 1) {
+            SelectFromListDialog dialog = new SelectFromListDialog(project, modules, toStringAspect, "Select Gradle Module", ListSelectionModel.SINGLE_SELECTION);
+            boolean isOk = dialog.showAndGet();
+            if (isOk) {
+                gradleVirtualFile = projectBaseDir
+                        .findChild(String.valueOf(dialog.getSelection()[0]))
+                        .findChild("build.gradle");
+            } else {
+                return false;
+            }
+        } else if (modules.length == 1) {
+            gradleVirtualFile = projectBaseDir
+                    .findChild(modules[0])
+                    .findChild("build.gradle");
+        } else {
+            gradleVirtualFile = projectBaseDir
+                    .findChild("build.gradle");
+        }
+
+        if (gradleVirtualFile != null) {
+            buildGradle = FileDocumentManager.getInstance().getDocument(gradleVirtualFile);
+        }
+
+        return true;
+    }
+
+    private void checkFilesExist() throws FileNotFoundException {
+
+        final String basePath = project.getBasePath();
+        if (StringUtils.isEmpty(basePath)) {
+            throw new FileNotFoundException(Strings.ERROR_BASE_PATH_NOT_FOUND);
+        }
+
+        projectBaseDir = LocalFileSystem.getInstance().findFileByPath(basePath);
+        if (projectBaseDir == null) {
+            throw new FileNotFoundException(Strings.ERROR_PROJECT_BASE_DIR_NOT_FOUND);
+        }
+
+        final VirtualFile virtualSettingsGradle = projectBaseDir.findChild("settings.gradle");
+        if (virtualSettingsGradle != null) {
+            final Document settingsGradle = FileDocumentManager.getInstance().getDocument(virtualSettingsGradle);
+            if (settingsGradle != null) {
+                modules = readSettingsGradle(settingsGradle);
+            }
+        } else if (projectBaseDir.findChild("build.gradle") == null) {
+            throw new FileNotFoundException(Strings.ERROR_BUILD_GRADLE_NOT_FOUND);
+        }
     }
 
     public void addDependency(String repository, AnActionEvent actionEvent) {
@@ -58,7 +109,7 @@ public class GradleManager {
             if (line.contains("dependencies")) {
                 if (line.contains("{")) {
                     sb
-                            .append("\tcompile '")
+                            .append("\timplementation '")
                             .append(repository)
                             .append("'\n");
                 }
@@ -69,41 +120,36 @@ public class GradleManager {
     }
 
     private void writeToGradle(StringBuilder stringBuilder, AnActionEvent actionEvent) {
-        ApplicationManager.getApplication().runWriteAction(() -> buildGradle.setText(stringBuilder));
-        syncProject(actionEvent);
+        final Application application = ApplicationManager.getApplication();
+        application.invokeLater(() -> {
+            application.runWriteAction(() -> buildGradle.setText(stringBuilder));
+            syncProject(actionEvent);
+        });
     }
 
+    // TODO do not allow this method called without invokeLater()
     private void syncProject(AnActionEvent actionEvent) {
-        ActionManager.getInstance().getAction("Android.SyncProject").actionPerformed(actionEvent);
+        AnAction androidSyncAction = getAction("Android.SyncProject");
+        AnAction refreshAllProjectAction = getAction("ExternalSystem.RefreshAllProjects");
+
+        if (androidSyncAction != null && !(androidSyncAction instanceof EmptyAction)) {
+            androidSyncAction.actionPerformed(actionEvent);
+        } else if (refreshAllProjectAction != null && !(refreshAllProjectAction instanceof EmptyAction)) {
+            refreshAllProjectAction.actionPerformed(actionEvent);
+        } else {
+            SwingUtilities.invokeLater(() -> Messages.showInfoMessage(Strings.ERROR_SYNC_FAILED, Strings.ERROR_TITLE_SYNC_FAILED));
+        }
     }
 
-    private String[] readSettingsGradle() {
+    private AnAction getAction(String actionId) {
+        return ActionManager.getInstance().getAction(actionId);
+    }
+
+    private String[] readSettingsGradle(Document settingsGradle) {
         return Stream.of(settingsGradle.getText().split("'"))
                 .filter(s -> s.startsWith(":"))
                 .map(s -> s.replace(":", ""))
                 .toArray(String[]::new);
 
-    }
-
-    private void initBuildGradle() {
-        SelectFromListDialog.ToStringAspect toStringAspect = String::valueOf;
-        VirtualFile gradleVirtualFile = null;
-        if (modules.length > 1) {
-            SelectFromListDialog dialog = new SelectFromListDialog(project, modules, toStringAspect, "Select Gradle Module", ListSelectionModel.SINGLE_SELECTION);
-            boolean isOk = dialog.showAndGet();
-            if (isOk) {
-                gradleVirtualFile = project.getBaseDir()
-                        .findChild(String.valueOf(dialog.getSelection()[0]))
-                        .findChild("build.gradle");
-            }
-        } else {
-            gradleVirtualFile = project.getBaseDir()
-                    .findChild(modules[0])
-                    .findChild("build.gradle");
-        }
-
-        if (gradleVirtualFile != null) {
-            buildGradle = FileDocumentManager.getInstance().getDocument(gradleVirtualFile);
-        }
     }
 }

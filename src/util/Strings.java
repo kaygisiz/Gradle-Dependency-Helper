@@ -17,10 +17,25 @@ package util;
 
 public class Strings {
     public static final String BASE_URL = "http://search.maven.org/";
-    public static final String ERROR_TITLE_MAVEN_SEARCH = "FAILED";
+
+    // Titles
     public static final String TITLE_SELECT_REPOSITORY = "Select Repository";
-    public static final String MESSAGE_MAVEN_SEARCH = "Enter keyword to find repository: ";
     public static final String TITLE_MAVEN_SEARCH = "Search Repository";
-    public static final String TITLE_NOT_FOUND = "Repository Not Found";
+
+    // Messages
+    public static final String MESSAGE_MAVEN_SEARCH = "Enter keyword to find repository: ";
     public static final String MESSAGE_SUGGESTIONS = "Similar repositories: ";
+
+    // Error Titles
+    public static final String ERROR_TITLE_MAVEN_SEARCH = "FAILED";
+    public static final String ERROR_TITLE_REPOSITORY_NOT_FOUND = "Repository Not Found";
+    public static final String ERROR_TITLE_FILE_NOT_FOUND = "File Not Found";
+    public static final String ERROR_TITLE_SYNC_FAILED = "SYNC FALIED";
+
+
+    // Error Messages
+    public static final String ERROR_BASE_PATH_NOT_FOUND = "Project base path not found.";
+    public static final String ERROR_PROJECT_BASE_DIR_NOT_FOUND = "Project base directory not found.";
+    public static final String ERROR_BUILD_GRADLE_NOT_FOUND = "Project doesn't contain any gradle file.";
+    public static final String ERROR_SYNC_FAILED = "Project sync failed.";
 }

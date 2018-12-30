@@ -23,10 +23,13 @@ import com.intellij.openapi.ui.SelectFromListDialog;
 import managers.GradleManager;
 import network.NetworkManager;
 import network.model.response.MavenSearchResponse;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import util.ArrayHelper;
 import util.Strings;
 
 import javax.swing.*;
+import java.io.FileNotFoundException;
 import java.util.concurrent.CompletableFuture;
 
 public class SearchAction extends AnAction {
@@ -38,7 +41,7 @@ public class SearchAction extends AnAction {
     private SelectFromListDialog.ToStringAspect toStringAspect;
 
     @Override
-    public void actionPerformed(AnActionEvent actionEvent) {
+    public void actionPerformed(@NotNull AnActionEvent actionEvent) {
         Project project = actionEvent.getProject();
 
         if (project != null) {
@@ -49,34 +52,43 @@ public class SearchAction extends AnAction {
 
             gradleManager = new GradleManager(project);
 
-            doSearch(getSearchKeyword(), actionEvent);
+            try {
+                if (gradleManager.initBuildGradle()) {
+                    doSearch(getSearchKeyword(), actionEvent);
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                SwingUtilities.invokeLater(() -> Messages.showInfoMessage(e.getMessage(), Strings.ERROR_TITLE_FILE_NOT_FOUND));
+            }
         }
     }
 
     private void doSearch(String keyword, AnActionEvent actionEvent) {
-        getRepositories(keyword)
-                .thenAcceptAsync(mavenSearchResponse -> {
-                            SwingUtilities.invokeLater(() -> {
-                                if (!mavenSearchResponse.getBody().getNumFound().equals("0")) {
-                                    SelectFromListDialog dialog = initSelectFromListDialog(actionEvent.getProject(), Strings.TITLE_SELECT_REPOSITORY, ArrayHelper.docListToStringArray(mavenSearchResponse.getBody().getDocList()), toStringAspect);
-                                    boolean isOk = dialog.showAndGet();
-                                    if (isOk) {
-                                        gradleManager.addDependency(String.valueOf(dialog.getSelection()[0]), actionEvent);
+        if (StringUtils.isNotEmpty(keyword)) {
+            getRepositories(keyword)
+                    .thenAcceptAsync(mavenSearchResponse -> {
+                                SwingUtilities.invokeLater(() -> {
+                                    if (!mavenSearchResponse.getBody().getNumFound().equals("0")) {
+                                        SelectFromListDialog dialog = initSelectFromListDialog(actionEvent.getProject(), Strings.TITLE_SELECT_REPOSITORY, ArrayHelper.docListToStringArray(mavenSearchResponse.getBody().getDocList()), toStringAspect);
+                                        boolean isOk = dialog.showAndGet();
+                                        if (isOk) {
+                                            gradleManager.addDependency(String.valueOf(dialog.getSelection()[0]), actionEvent);
+                                        }
+                                    } else if (mavenSearchResponse.getSpellcheck().getSuggestion().size() > 0) {
+                                        Messages.showInfoMessage(Strings.MESSAGE_SUGGESTIONS + String.join(",", ArrayHelper.objectListToStringArray(mavenSearchResponse.getSpellcheck().getSuggestion())), Strings.ERROR_TITLE_REPOSITORY_NOT_FOUND);
+                                    } else {
+                                        Messages.showInfoMessage("", Strings.ERROR_TITLE_REPOSITORY_NOT_FOUND);
                                     }
-                                } else if (mavenSearchResponse.getSpellcheck().getSuggestion().size() > 0) {
-                                    Messages.showInfoMessage(Strings.MESSAGE_SUGGESTIONS + String.join(",", ArrayHelper.objectListToStringArray(mavenSearchResponse.getSpellcheck().getSuggestion())), Strings.TITLE_NOT_FOUND);
-                                } else {
-                                    Messages.showInfoMessage("", Strings.TITLE_NOT_FOUND);
-                                }
-                            });
-                        }
-                ).exceptionally(throwable -> {
-            SwingUtilities.invokeLater(() -> {
-                Messages.showInfoMessage(throwable.getMessage(), Strings.ERROR_TITLE_MAVEN_SEARCH);
-            });
+                                });
+                            }
+                    ).exceptionally(throwable -> {
+                SwingUtilities.invokeLater(() -> {
+                    Messages.showInfoMessage(throwable.getMessage(), Strings.ERROR_TITLE_MAVEN_SEARCH);
+                });
 
-            return null;
-        });
+                return null;
+            });
+        }
     }
 
     private CompletableFuture<MavenSearchResponse> getRepositories(String keyword) {

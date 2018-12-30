@@ -1,12 +1,12 @@
 <idea-plugin>
     <id>com.kaygisiz.gradlehelper</id>
-    <name>Gradle External Library Helper</name>
-    <version>1.0</version>
-    <vendor email="voidideas@gmail.com" url="https://github.com/kaygisiz/Gradle-External-Library-Helper">Void Ideas
+    <name>Gradle Dependency Helper</name>
+    <version>1.1</version>
+    <vendor email="voidideas@gmail.com" url="https://github.com/kaygisiz/Gradle-Dependency-Helper">Void Ideas
     </vendor>
 
     <description><![CDATA[
-      Gradle External Library Helper helps you to find and add external dependencies then sync project from anywhere in project.<br>
+      Gradle Dependency Helper helps you to find and add external dependencies then sync project from anywhere in project.<br>
     ]]></description>
 
     <!--<change-notes><![CDATA[
@@ -30,7 +30,7 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="SearchAction" class="action.SearchAction" text="Add External Library to Gradle...">
+        <action id="SearchAction" class="action.SearchAction" text="Add Dependency to Gradle...">
             <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
     </actions>
