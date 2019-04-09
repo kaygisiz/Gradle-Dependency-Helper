@@ -16,6 +16,6 @@ _or_
 ## How to Use
 1. Go to **Generate** with right click or `Alt + Insert` in Windows / `⌘ N` in MacOS
 2. Click the **Add Dependency to Gradle...** at the bottom of menu
-3. Select **module** that you want to add library into gradle of it
+3. Select **module** that you want to add library into gradle of it (for Multi-Project Builds)
 4. Input a **library** name or **keyword** and search it
 5. Select a library from list
