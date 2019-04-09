@@ -4,7 +4,7 @@
   <img align="center" src="https://i.makeagif.com/media/4-09-2019/xkn0jr.gif">
 </p>
 
-Gradle Dependency Helper helps you to find and add external dependencies then sync project from anywhere in project.
+Gradle Dependency Helper helps you to find and add maven libraries into dependencies closure inside build.gradle then sync gradle from anywhere in project.
 
 ## How to install
 - in supported JetBrains ide: go to `Settings → Plugins → Browse repositories` and search for `Gradle Dependency Helper`
