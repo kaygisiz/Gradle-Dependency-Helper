@@ -1,5 +1,9 @@
 # Gradle Dependency Helper
 
+<p align="center">
+  <img align="center" src="https://i.makeagif.com/media/4-09-2019/xkn0jr.gif">
+</p>
+
 Gradle Dependency Helper helps you to find and add external dependencies then sync project from anywhere in project.
 
 ## How to install
