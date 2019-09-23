@@ -1,5 +1,7 @@
 /**
  *  Copyright (C) 2017 Necati Caner Gaygisiz
+ *  Copyright (C) 2019 Mehmet Sirin Usanmaz
+ *
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,15 +18,23 @@
 package managers;
 
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.EmptyAction;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.SelectFromListDialog;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.apache.commons.lang.StringUtils;
+import util.Strings;
 
 import javax.swing.*;
+import java.io.FileNotFoundException;
 import java.util.stream.Stream;
 
 public class GradleManager {
